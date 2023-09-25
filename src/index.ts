@@ -3,14 +3,26 @@ import bodyParser from 'body-parser';
 import swaggerJsdoc from 'swagger-jsdoc';
 import swaggerUi from 'swagger-ui-express';
 import cors from 'cors';
+import * as sql from './sql';
 
 const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
 // Referrals storage
-const referrals: any[] = [];
+let referrals: any[] = [];
 let currentId = 1;
+
+// Load data from PostgreSQL and populate the referrals array
+async function loadReferralsData() {
+    try {
+      const persons = await sql.getAllPersons(); // Assuming getAllPersons returns Person[]
+      console.log(persons);
+      referrals = persons; // Assign the fetched data to the people array
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
 
 // Swagger setup
 const options = {
@@ -51,7 +63,7 @@ app.post('/api/referrals', (req, res) => {
     res.status(201).json(referral);
 });
 
-const PORT = process.env.PORT || 3000;
+export const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
