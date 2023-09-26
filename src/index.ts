@@ -9,20 +9,57 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+//interface for Patient
+interface Patient {
+    name: String,
+    medicareNumber: String,
+    dateOfBirth: Date
+  }
+  
+  //interface for Referrer
+  interface Referrer {
+    practiceName: String,
+    doctorName: String,
+    phoneNumber: String,
+    emailAddress: String
+  }
+
 // Referrals storage
 let referrals: any[] = [];
+let referrers: Referrer[] = [];
+let patients: Patient[] = [];
 let currentId = 1;
 
 // Load data from PostgreSQL and populate the referrals array
 async function loadReferralsData() {
     try {
-      const persons = await sql.getAllPersons(); // Assuming getAllPersons returns Person[]
-      console.log(persons);
-      referrals = persons; // Assign the fetched data to the people array
+      const referral = await sql.getAllReferral(); //Get all data in the same row
+      //const patient = await sql.getAllPatient();
+      //const referrer = await sql.getAllReferrer();
+      referrals = referral; // Assign the fetched data to the referrals array
+      let referralLength=referrals.length;
+        //let referrer: Referrer = await sql.getReferrerByID(referral[i].referrerid)
+        for (const obj of referrals) {
+            // The replacement object you want to insert
+            const referrer = await sql.getReferrerByID(obj.referrerid);
+            const patient = await sql.getPatientByID(obj.patientid);
+            referrers=referrer;
+            patients=patient;
+            // The key you want to replace in each object
+            const referrerID = 'referrerid';
+            const patientID = 'patientid';
+            if ((referrerID in obj) && (patientID in obj)) {
+              obj[referrerID] = referrers;
+              obj[patientID] = patient;
+            }
+          }
+
+    console.log(referral);
     } catch (error) {
       console.error('Error:', error);
     }
   }
+
 
 // Swagger setup
 const options = {
@@ -41,7 +78,7 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 
 
-
+loadReferralsData();
 app.get('/api/referrals', (req, res) => {
     res.status(200).json(referrals);
 });
@@ -65,7 +102,7 @@ app.post('/api/referrals', (req, res) => {
 
 export const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+
 });
 
 /**

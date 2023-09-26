@@ -22,6 +22,11 @@ interface Referrer {
   emailAddress: String
 }
 
+//interface for Referrer
+interface Referral {
+
+}
+
 // Function to execute a query to get all people
 export async function getAllReferrals() {
   try {
@@ -50,6 +55,80 @@ export async function getAllReferrals() {
   } /*finally {
     db.$pool.end(); // Close the database connection when done
   }*/
+}
+
+// Function to execute a query to get Patient by ID
+export async function getPatientByID(id: Number) {
+  try {
+    const query = 
+    `
+    SELECT name, medicareNumber, dateOfBirth
+    FROM PATIENT WHERE patientID=$1
+    `;
+    const response = await (await db).query(query, [id]);
+    return response;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Function to execute a query to get Referrer by ID
+export async function getReferrerByID(id: Number) {
+  try {
+    const query = 
+    `
+    SELECT practiceName, doctorName, phoneNumber, emailAddress
+    FROM REFERRER WHERE referrerID=$1
+    `;
+    const response = await (await db).query(query, [id]);
+    return response;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Function to execute a query to get Referral by ID
+export async function getReferralByID (id: Number){
+  try {
+    const query = `SELECT * FROM REFERRAL WHERE ID=$1`;
+    const response = await (await db).query(query, [id]);
+    return response;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Function to execute a query to get all Referral
+export async function getAllReferral() {
+  try {
+    const query = `SELECT * FROM REFERRAL`;
+    const response = await (await db).query(`SELECT * FROM referral`);
+    return response;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Function to execute a query to get all Patient
+export async function getAllPatient() {
+  try {
+    const query = `SELECT * FROM PATIENT`;
+    const response = await (await db).query(query);
+    return response;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Function to execute a query to get all Referrer
+export async function getAllReferrer() {
+  try {
+    const query = `SELECT * FROM REFERRER`;
+    const response = await (await db).query(query);
+    return response;
+  } catch (error) {
+    console.error('Error:', error);
+  }
 }
 
 // Function to execute a query to create person

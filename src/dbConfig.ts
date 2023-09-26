@@ -32,9 +32,9 @@ const pgp = pgPromise({});
 
 // AWS RDS database connection configuration
 export async function DBConnect() {
-  const password = await askForPassword();
-  dbConfig.password=password;
-
+  //const password = await askForPassword();
+  //dbConfig.password=password;
+  dbConfig.password='bootcamp2023';
   const db = pgp(dbConfig);
 
 // Function to test the connection
@@ -45,10 +45,10 @@ async function testConnection() {
     console.log(`Server is running on port ${PORT}`);
   } catch (error) {
     console.error('Error:', error);
-  } finally {
+  } /*finally {
     await db.$pool.end(); // Close the connection pool
     rl.close();
-  }
+  }*/
 }
 
 //test DB connection
