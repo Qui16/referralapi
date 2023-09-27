@@ -1,10 +1,22 @@
 import {db} from "./dbConfig";
 
-interface Person {
-  id: number;
-  firstname: string;
-  lastname: string;
-  phoneNumber: string;
+//interface for Referral
+interface Referral {
+  referralID: Number,
+  referrer: {
+    practiceName: String,
+    doctorName: String,
+    phoneNumber: String,
+    emailAddress: String
+  },
+  initialAssessment: String,
+  notes: String,
+  specialistName: String,
+  patient: {
+    name: String,
+    medicareNumber: String,
+    dateOfBirth: Date
+  }
 }
 
 //interface for Patient
@@ -130,60 +142,94 @@ export async function getAllReferrer() {
     console.error('Error:', error);
   }
 }
+// Function to execute a query to get ID of referrer
+export async function getReferrerID(referrer: Referrer) {
+  try {
+    const query = `SELECT 'referrerid' FROM REFERRER
+    WHERE 
+    practicename = $1 AND
+    doctorname = $2 AND
+    phonenumber = $3 AND
+    emailaddress = $4
+    `;
+    const response = await (await db).query(query,[referrer.practiceName, referrer.doctorName, referrer.phoneNumber, referrer.emailAddress]);
+    return response;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
 
-// Function to execute a query to create person
-export async function addPerson(person: Person): Promise<void> {
+// Function to execute a query to get all Referrer
+export async function getPatientID(patient: Patient) {
+  try {
+    const query = `SELECT 'patientid' FROM PATIENT
+    WHERE 
+    name = $1 AND
+    medicarenumber = $2 AND
+    dateofbirth = $3
+    `;
+    const response = await (await db).query(query,[patient.name, patient.medicareNumber, patient.dateOfBirth]);
+    return response;
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Function to execute a query to create referral
+export async function createReferral(referral: Referral, referrerID:Number, patientID:Number): Promise<void> {
   try {
     const query = `
-      INSERT INTO persons (first_name, last_name, phone_number)
-      VALUES ($1, $2, $3)
+      INSERT INTO REFERRAL (referrerid,initialassessment, notes, specialistname, patientid)
+      VALUES ($1, $2, $3, $4, $5)
     `;
 
-    await (await db).none(query, [person.firstname, person.lastname, person.phoneNumber]);
-    console.log('Person added successfully');
+    await (await db).none(query, [referrerID, referral.initialAssessment, referral.notes, referral.specialistName, patientID]);
+    console.log('Referral added successfully');
   } catch (error) {
     console.error('Error:', error);
     throw error; // Optionally re-throw the error for handling in the calling code
   }
 }
 
-// Function to execute a query to update person
-export async function updatePerson(personUpdate: Person): Promise<void> {
+// Function to execute a query to create referrer
+export async function createReferrer(referrer: Referrer): Promise<void> {
   try {
-    const { id, firstname, lastname, phoneNumber } = personUpdate;
-    
-    // Build the SQL query based on the provided update fields
     const query = `
-      UPDATE persons
-      SET
-        first_name = $2,
-        last_name = $3,
-        phone_number = $4
-      WHERE id = $1
+      INSERT INTO REFERRER (practicename,doctorname, phonenumber, emailaddress)
+      VALUES ($1, $2, $3, $4)
     `;
 
-    const values = [id, firstname, lastname, phoneNumber];
-
-    await (await db).none(query, values);
-    console.log('Person updated successfully');
+    await (await db).none(query, [referrer.practiceName, referrer.doctorName, referrer.phoneNumber, referrer.emailAddress]);
+    console.log('Referrer created successfully');
   } catch (error) {
     console.error('Error:', error);
-    throw error;
+    throw error; // Optionally re-throw the error for handling in the calling code
   }
 }
 
-// Function to execute a query to delete person
-export async function deletePerson(personId: number): Promise<void> {
+// Function to execute a query to create patient
+export async function createPatient(patient: Patient): Promise<void> {
   try {
     const query = `
-      DELETE FROM persons
-      WHERE id = $1
+      INSERT INTO PATIENT (name,medicarenumber, dateofbirth)
+      VALUES ($1, $2, $3)
     `;
 
-    await (await db).none(query, [personId]);
-    console.log('Person deleted successfully');
+    await (await db).none(query, [patient.name, patient.medicareNumber, patient.dateOfBirth]);
+    console.log('Patient created successfully');
   } catch (error) {
     console.error('Error:', error);
-    throw error;
+    throw error; // Optionally re-throw the error for handling in the calling code
+  }
+}
+
+// Function to execute a query to get most current ID
+export async function getCurrentID() {
+  try {
+    const query = `SELECT MAX(referralid) FROM REFERRAL;`;
+    const response = await (await db).query(query);
+    return response;
+  } catch (error) {
+    console.error('Error:', error);
   }
 }

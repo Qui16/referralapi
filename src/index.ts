@@ -11,6 +11,7 @@ app.use(cors());
 
 //interface for Patient
 interface Patient {
+    patientID: Number,
     name: String,
     medicareNumber: String,
     dateOfBirth: Date
@@ -18,14 +19,35 @@ interface Patient {
   
   //interface for Referrer
   interface Referrer {
+    referrerID: Number,
     practiceName: String,
     doctorName: String,
     phoneNumber: String,
     emailAddress: String
   }
 
+ //interface for Referral
+ interface Referral {
+  referralID: Number,
+  referrer: {
+    practiceName: String,
+    doctorName: String,
+    phoneNumber: String,
+    emailAddress: String
+  },
+  initialAssessment: String,
+  notes: String,
+  specialistName: String,
+  patient: {
+    name: String,
+    medicareNumber: String,
+    dateOfBirth: Date
+  }
+}
+
 // Referrals storage
 let referrals: any[] = [];
+//let modReferrals: Referral;
 let referrers: Referrer[] = [];
 let patients: Patient[] = [];
 let currentId = 1;
@@ -34,27 +56,59 @@ let currentId = 1;
 async function loadReferralsData() {
     try {
       const referral = await sql.getAllReferral(); //Get all data in the same row
-      //const patient = await sql.getAllPatient();
-      //const referrer = await sql.getAllReferrer();
-      referrals = referral; // Assign the fetched data to the referrals array
-      let referralLength=referrals.length;
+      const patient = await sql.getAllPatient();
+      const referrer = await sql.getAllReferrer();
+      currentId = await sql.getCurrentID(); 
+      referrers = referrer;
+      patients = patient;
+      //referrals = referral; // Assign the fetched data to the referrals array              
+      //let referralLength=referrals.length;
         //let referrer: Referrer = await sql.getReferrerByID(referral[i].referrerid)
-        for (const obj of referrals) {
+        for (const obj of referral) {
             // The replacement object you want to insert
             const referrer = await sql.getReferrerByID(obj.referrerid);
             const patient = await sql.getPatientByID(obj.patientid);
-            referrers=referrer;
-            patients=patient;
+            /*const referrers: Referrer={
+              practiceName: referrer[0].practiceName,
+              doctorName: referrer[0].doctorName,
+              phoneNumber: referrer[0].phoneNumber,
+              emailAddress: referrer[0].emailAddress
+            };
+            const patients: Patient={
+              patientID: patient[0].patientid,
+              name: patient[0].name,
+              medicareNumber: patient[0].medicareNumber,
+              dateOfBirth: patient[0].dateOfBirth
+            };*/
+
+            const modReferral: Referral = {
+              referralID: obj.referralid,
+              referrer: {
+                practiceName: referrer.length > 0 ? referrer[0].practicename : 'none',
+                doctorName: referrer.length > 0 ? referrer[0].doctorname : 'none',
+                phoneNumber: referrer.length > 0 ? referrer[0].phonenumber : 'none',
+                emailAddress: referrer.length > 0 ? referrer[0].emailaddress : 'none'
+              },
+              initialAssessment: obj.initialassessment,
+              notes: obj.notes,
+              specialistName: obj.specialistname,
+              patient: {
+                name: patient.length > 0 ? patient[0].name : 'none',
+                medicareNumber: patient.length > 0 ? patient[0].medicarenumber : 'none',
+                dateOfBirth: patient.length > 0 ? patient[0].dateofbirth : 'none', 
+              }
+            };
+            referrals.push(modReferral);
+            /*
             // The key you want to replace in each object
             const referrerID = 'referrerid';
             const patientID = 'patientid';
             if ((referrerID in obj) && (patientID in obj)) {
               obj[referrerID] = referrers;
               obj[patientID] = patient;
-            }
+            }*/
           }
-
-    console.log(referral);
+          
     } catch (error) {
       console.error('Error:', error);
     }
@@ -85,7 +139,7 @@ app.get('/api/referrals', (req, res) => {
 
 
 app.get('/api/referrals/:id', (req, res) => {
-    const referral = referrals.find(r => r.id === +req.params.id);
+    const referral = referrals.find(r => r.referralID === +req.params.id);
     if (referral) {
         res.status(200).json(referral);
     } else {
@@ -93,11 +147,38 @@ app.get('/api/referrals/:id', (req, res) => {
     }
 });
 
+function findReferrer(){
+  
+}
+
 app.post('/api/referrals', (req, res) => {
     const referral = req.body;
-    referral.id = currentId++;
+    referral.referralID = currentId++;
+    const referrer = referrers.find(r => 
+    (r.practiceName === referral.referrer.practiceName) &&
+    (r.doctorName === referral.referrer.doctorName) &&
+    (r.phoneNumber === referral.referrer.phoneNumber) &&
+    (r.emailAddress === referral.referrer.emailAddress)
+    );
+    const patient = patients.find(r=>
+    (r.name === referral.patient.name) &&
+    (r.medicareNumber === referral.patient.medicareNumber) &&
+    (r.dateOfBirth === referral.patient.dateOfBirth)
+    );
+    if (!referrer || !patient) {
+      if(!referrer) {
+        sql.createReferrer(referral.referrer);
+        referrers.push(referral.referrer);
+      }
+      if(!patient) {
+        sql.createPatient(referral.patient);
+        patients.push(referral.patient)
+      }
+    }
+    console.log(referral);
+    sql.createReferral(referral, referrer.referrerID, patient.patientID)
     referrals.push(referral);
-    res.status(201).json(referral);
+    res.status(200).json(referral);
 });
 
 export const PORT = process.env.PORT || 3000;
