@@ -21,6 +21,7 @@ interface Referral {
 
 //interface for Patient
 interface Patient {
+  patientID: Number,
   name: String,
   medicareNumber: String,
   dateOfBirth: Date
@@ -28,16 +29,13 @@ interface Patient {
 
 //interface for Referrer
 interface Referrer {
+  referrerID: Number,
   practiceName: String,
   doctorName: String,
   phoneNumber: String,
   emailAddress: String
 }
 
-//interface for Referrer
-interface Referral {
-
-}
 
 // Function to execute a query to get all people
 export async function getAllReferrals() {
@@ -143,9 +141,9 @@ export async function getAllReferrer() {
   }
 }
 // Function to execute a query to get ID of referrer
-export async function getReferrerID(referrer: Referrer) {
+export async function getReferrer(referrer: Referrer) {
   try {
-    const query = `SELECT 'referrerid' FROM REFERRER
+    const query = `SELECT * FROM REFERRER
     WHERE 
     practicename = $1 AND
     doctorname = $2 AND
@@ -159,10 +157,10 @@ export async function getReferrerID(referrer: Referrer) {
   }
 }
 
-// Function to execute a query to get all Referrer
-export async function getPatientID(patient: Patient) {
+// Function to execute a query to get Patient
+export async function getPatient(patient: Patient) {
   try {
-    const query = `SELECT 'patientid' FROM PATIENT
+    const query = `SELECT * FROM PATIENT
     WHERE 
     name = $1 AND
     medicarenumber = $2 AND
@@ -192,14 +190,14 @@ export async function createReferral(referral: Referral, referrerID:Number, pati
 }
 
 // Function to execute a query to create referrer
-export async function createReferrer(referrer: Referrer): Promise<void> {
+export async function createReferrer(practiceName: String, doctorName: String, phoneNumber: String, emailAddress: String): Promise<void> {
   try {
     const query = `
       INSERT INTO REFERRER (practicename,doctorname, phonenumber, emailaddress)
       VALUES ($1, $2, $3, $4)
     `;
 
-    await (await db).none(query, [referrer.practiceName, referrer.doctorName, referrer.phoneNumber, referrer.emailAddress]);
+    await (await db).none(query, [practiceName, doctorName, phoneNumber, emailAddress]);
     console.log('Referrer created successfully');
   } catch (error) {
     console.error('Error:', error);
@@ -208,14 +206,14 @@ export async function createReferrer(referrer: Referrer): Promise<void> {
 }
 
 // Function to execute a query to create patient
-export async function createPatient(patient: Patient): Promise<void> {
+export async function createPatient(name: String, medicareNumber: String, dateOfBirth: Date): Promise<void> {
   try {
     const query = `
       INSERT INTO PATIENT (name,medicarenumber, dateofbirth)
       VALUES ($1, $2, $3)
     `;
 
-    await (await db).none(query, [patient.name, patient.medicareNumber, patient.dateOfBirth]);
+    await (await db).none(query, [name, medicareNumber, dateOfBirth]);
     console.log('Patient created successfully');
   } catch (error) {
     console.error('Error:', error);

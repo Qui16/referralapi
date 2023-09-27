@@ -47,7 +47,6 @@ interface Patient {
 
 // Referrals storage
 let referrals: any[] = [];
-//let modReferrals: Referral;
 let referrers: Referrer[] = [];
 let patients: Patient[] = [];
 let currentId = 1;
@@ -61,26 +60,10 @@ async function loadReferralsData() {
       currentId = await sql.getCurrentID(); 
       referrers = referrer;
       patients = patient;
-      //referrals = referral; // Assign the fetched data to the referrals array              
-      //let referralLength=referrals.length;
-        //let referrer: Referrer = await sql.getReferrerByID(referral[i].referrerid)
         for (const obj of referral) {
             // The replacement object you want to insert
             const referrer = await sql.getReferrerByID(obj.referrerid);
             const patient = await sql.getPatientByID(obj.patientid);
-            /*const referrers: Referrer={
-              practiceName: referrer[0].practiceName,
-              doctorName: referrer[0].doctorName,
-              phoneNumber: referrer[0].phoneNumber,
-              emailAddress: referrer[0].emailAddress
-            };
-            const patients: Patient={
-              patientID: patient[0].patientid,
-              name: patient[0].name,
-              medicareNumber: patient[0].medicareNumber,
-              dateOfBirth: patient[0].dateOfBirth
-            };*/
-
             const modReferral: Referral = {
               referralID: obj.referralid,
               referrer: {
@@ -95,20 +78,11 @@ async function loadReferralsData() {
               patient: {
                 name: patient.length > 0 ? patient[0].name : 'none',
                 medicareNumber: patient.length > 0 ? patient[0].medicarenumber : 'none',
-                dateOfBirth: patient.length > 0 ? patient[0].dateofbirth : 'none', 
+                dateOfBirth: patient.length > 0 ? patient[0].dateofbirth : 'none' 
               }
             };
             referrals.push(modReferral);
-            /*
-            // The key you want to replace in each object
-            const referrerID = 'referrerid';
-            const patientID = 'patientid';
-            if ((referrerID in obj) && (patientID in obj)) {
-              obj[referrerID] = referrers;
-              obj[patientID] = patient;
-            }*/
           }
-          
     } catch (error) {
       console.error('Error:', error);
     }
@@ -132,13 +106,15 @@ app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(specs));
 
 
 
-loadReferralsData();
+
 app.get('/api/referrals', (req, res) => {
+    loadReferralsData();
     res.status(200).json(referrals);
 });
 
 
 app.get('/api/referrals/:id', (req, res) => {
+    loadReferralsData();
     const referral = referrals.find(r => r.referralID === +req.params.id);
     if (referral) {
         res.status(200).json(referral);
@@ -147,38 +123,65 @@ app.get('/api/referrals/:id', (req, res) => {
     }
 });
 
-function findReferrer(){
-  
+//find if referrer exist
+function findReferrer(referral: Referral){
+  console.log('practiceName:', referral.referrer.practiceName);
+  console.log('doctorName:', referral.referrer.doctorName);
+  console.log('phoneNumber:', referral.referrer.phoneNumber);
+  console.log('emailAddress:', referral.referrer.emailAddress);
+  console.log(referrers[0].practiceName);
+  console.log('real:', referrers.find(r=>r.practiceName));
+  //const referrer = referrers.find(r=> 
+    /*(r.practiceName === referral.referrer.practiceName) ||
+    (r.doctorName === referral.referrer.doctorName) ||
+    (r.phoneNumber === referral.referrer.phoneNumber) ||
+    (r.emailAddress === referral.referrer.emailAddress)*/
+    //r.practiceName.includes('Green Clinic') 
+    //);
+    const referrer = referrers.find((r) => r.practiceName.includes('Green Clinic')) ;
+    if (!referrer) {
+      throw new Error('Referrer not found');
+    }
+    console.log('Found referrer:', referrer);
+    return referrer;
 }
 
-app.post('/api/referrals', (req, res) => {
-    const referral = req.body;
-    referral.referralID = currentId++;
-    const referrer = referrers.find(r => 
-    (r.practiceName === referral.referrer.practiceName) &&
-    (r.doctorName === referral.referrer.doctorName) &&
-    (r.phoneNumber === referral.referrer.phoneNumber) &&
-    (r.emailAddress === referral.referrer.emailAddress)
-    );
-    const patient = patients.find(r=>
-    (r.name === referral.patient.name) &&
-    (r.medicareNumber === referral.patient.medicareNumber) &&
+//find if patient exist
+function findPatient(referral: Referral){
+  const patient = patients.find(r=>
+    (r.name === referral.patient.name) ||
+    (r.medicareNumber === referral.patient.medicareNumber) ||
     (r.dateOfBirth === referral.patient.dateOfBirth)
     );
+    return patient;
+}
+
+app.post('/api/referrals', async (req, res) => {
+  try{
+    await loadReferralsData();
+  
+    const referral: Referral = req.body;
+    referral.referralID = currentId++;
+    let patient = findPatient(referral);
+    let referrer = findReferrer(referral);
     if (!referrer || !patient) {
       if(!referrer) {
-        sql.createReferrer(referral.referrer);
-        referrers.push(referral.referrer);
+        sql.createReferrer(referral.referrer.practiceName, referral.referrer.doctorName, referral.referrer.phoneNumber, referral.referrer.emailAddress);
+        referrer = findReferrer(referral);
       }
       if(!patient) {
-        sql.createPatient(referral.patient);
-        patients.push(referral.patient)
+        sql.createPatient(referral.patient.name, referral.patient.medicareNumber, referral.patient.dateOfBirth);
+        patient = findPatient(referral);
       }
+      
     }
-    console.log(referral);
-    sql.createReferral(referral, referrer.referrerID, patient.patientID)
-    referrals.push(referral);
+    if(referrer && patient){
+      sql.createReferral(referral, referrer.referrerID, patient.patientID) 
+    }
     res.status(200).json(referral);
+  }catch (error) {
+    console.error('Error:', error);
+  };
 });
 
 export const PORT = process.env.PORT || 3000;
@@ -228,7 +231,7 @@ app.listen(PORT, () => {
  *     Referral:
  *       type: object
  *       properties:
- *         id:
+ *         referralid:
  *           type: integer
  *           description: The referral ID.
  *         referrer:
