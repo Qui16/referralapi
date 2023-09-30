@@ -11,15 +11,15 @@ app.use(cors());
 
 //interface for Patient
 interface Patient {
-    patientId: Number,
+    patientid: Number,
     name: String,
-    medicareNumber: String,
-    dateOfBirth: Date
+    medicarenumber: String,
+    dateofbirth: Date
   }
   
   //interface for Referrer
   interface Referrer {
-    referrerId: Number,
+    referrerid: Number,
     practicename: String,
     doctorname: String,
     phonenumber: String,
@@ -125,8 +125,8 @@ app.get('/api/referrals/:id', (req, res) => {
 
 //find if referrer exist
 function findReferrer(referral: Referral){
-  console.log(referrers[0]);
-  console.log('real:', referrers[0].practicename);
+  //console.log(referrers[0]);
+  //console.log('real:', referrers[0].practicename);
   const referrer = referrers.find(r=> 
     (r.practicename === referral.referrer.practiceName) ||
     (r.doctorname === referral.referrer.doctorName) ||
@@ -140,7 +140,7 @@ function findReferrer(referral: Referral){
     if (!referrer) {
       throw new Error('Referrer not found');
     }
-    console.log('Found referrer:', referrer);
+    //console.log('Found referrer:', referrer);
     return referrer;
 }
 
@@ -148,9 +148,12 @@ function findReferrer(referral: Referral){
 function findPatient(referral: Referral){
   const patient = patients.find(r=>
     (r.name === referral.patient.name) ||
-    (r.medicareNumber === referral.patient.medicareNumber) ||
-    (r.dateOfBirth === referral.patient.dateOfBirth)
+    (r.medicarenumber === referral.patient.medicareNumber) ||
+    (r.dateofbirth === referral.patient.dateOfBirth)
     );
+    console.log('name', patients[0].name);
+    console.log('medicareNumber', patients[0].medicarenumber);
+    console.log('DOB', patients[0].dateofbirth);
     return patient;
 }
 
@@ -173,8 +176,9 @@ app.post('/api/referrals', async (req, res) => {
       }
       
     }
+    console.log(referrer.referrerid);
     if(referrer && patient){
-      sql.createReferral(referral, referrer.referrerId, patient.patientId) 
+      sql.createReferral(referral, referrer.referrerid, patient.patientid) 
     }
     res.status(200).json(referral);
   }catch (error) {
