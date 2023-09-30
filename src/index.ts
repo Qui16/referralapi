@@ -11,7 +11,7 @@ app.use(cors());
 
 //interface for Patient
 interface Patient {
-    patientID: Number,
+    patientId: Number,
     name: String,
     medicareNumber: String,
     dateOfBirth: Date
@@ -19,11 +19,11 @@ interface Patient {
   
   //interface for Referrer
   interface Referrer {
-    referrerID: Number,
-    practiceName: String,
-    doctorName: String,
-    phoneNumber: String,
-    emailAddress: String
+    referrerId: Number,
+    practicename: String,
+    doctorname: String,
+    phonenumber: String,
+    emailaddress: String
   }
 
  //interface for Referral
@@ -125,20 +125,18 @@ app.get('/api/referrals/:id', (req, res) => {
 
 //find if referrer exist
 function findReferrer(referral: Referral){
-  console.log('practiceName:', referral.referrer.practiceName);
-  console.log('doctorName:', referral.referrer.doctorName);
-  console.log('phoneNumber:', referral.referrer.phoneNumber);
-  console.log('emailAddress:', referral.referrer.emailAddress);
-  console.log(referrers[0].practiceName);
-  console.log('real:', referrers.find(r=>r.practiceName));
-  //const referrer = referrers.find(r=> 
-    /*(r.practiceName === referral.referrer.practiceName) ||
-    (r.doctorName === referral.referrer.doctorName) ||
-    (r.phoneNumber === referral.referrer.phoneNumber) ||
-    (r.emailAddress === referral.referrer.emailAddress)*/
-    //r.practiceName.includes('Green Clinic') 
-    //);
-    const referrer = referrers.find((r) => r.practiceName.includes('Green Clinic')) ;
+  console.log(referrers[0]);
+  console.log('real:', referrers[0].practicename);
+  const referrer = referrers.find(r=> 
+    (r.practicename === referral.referrer.practiceName) ||
+    (r.doctorname === referral.referrer.doctorName) ||
+    (r.phonenumber === referral.referrer.phoneNumber) ||
+    (r.emailaddress === referral.referrer.emailAddress)
+    );
+    console.log('practiceName:', referrers[0].practicename);
+    console.log('doctorName:', referrers[0].doctorname);
+    console.log('phoneNumber:', referrers[0].phonenumber);
+    console.log('emailAddress:', referrers[0].emailaddress);
     if (!referrer) {
       throw new Error('Referrer not found');
     }
@@ -176,7 +174,7 @@ app.post('/api/referrals', async (req, res) => {
       
     }
     if(referrer && patient){
-      sql.createReferral(referral, referrer.referrerID, patient.patientID) 
+      sql.createReferral(referral, referrer.referrerId, patient.patientId) 
     }
     res.status(200).json(referral);
   }catch (error) {
