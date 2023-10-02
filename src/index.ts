@@ -11,19 +11,19 @@ app.use(cors());
 
 //interface for Patient
 interface Patient {
-    patientid: Number,
+    patientid: Number, //Changed this to patientID and it will cause data value undefined
     name: String,
-    medicarenumber: String,
-    dateofbirth: Date
+    medicarenumber: String, //Changed this to medicareNumber and it will cause data value undefined
+    dateofbirth: Date //Changed this to dateOfBirth and it will cause data value undefined
   }
   
   //interface for Referrer
   interface Referrer {
-    referrerid: Number,
-    practicename: String,
-    doctorname: String,
-    phonenumber: String,
-    emailaddress: String
+    referrerid: Number, //Changed this to referrerID and it will cause data value undefined
+    practicename: String, //Changed this to practiceName and it will cause data value undefined
+    doctorname: String, //Changed this to doctorName and it will cause data value undefined
+    phonenumber: String, //Changed this to phoneNumber and it will cause data value undefined
+    emailaddress: String //Changed this to emailAddress and it will cause data value undefined
   }
 
  //interface for Referral

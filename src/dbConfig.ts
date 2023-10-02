@@ -32,9 +32,8 @@ const pgp = pgPromise({});
 
 // AWS RDS database connection configuration
 export async function DBConnect() {
-  //const password = await askForPassword();
-  //dbConfig.password=password;
-  dbConfig.password='bootcamp2023';
+  const password = await askForPassword();
+  dbConfig.password=password;
   const db = pgp(dbConfig);
 
 // Function to test the connection
