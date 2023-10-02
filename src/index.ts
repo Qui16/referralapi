@@ -128,10 +128,10 @@ function findReferrer(referral: Referral){
   //console.log(referrers[0]);
   //console.log('real:', referrers[0].practicename);
   const referrer = referrers.find(r=> 
-    (r.practicename === referral.referrer.practiceName) ||
-    (r.doctorname === referral.referrer.doctorName) ||
-    (r.phonenumber === referral.referrer.phoneNumber) ||
-    (r.emailaddress === referral.referrer.emailAddress)
+    (r.practicename === referral.referrer.practiceName) || //this will undefined if above variable in interface changed to practiceName
+    (r.doctorname === referral.referrer.doctorName) || //this will undefined if above variable in interface changed to doctorName
+    (r.phonenumber === referral.referrer.phoneNumber) || //this will undefined if above variable in interface changed to phoneNumber
+    (r.emailaddress === referral.referrer.emailAddress) //this will undefined if above variable in interface changed to emailAddress
     );
     console.log('practiceName:', referrers[0].practicename);
     console.log('doctorName:', referrers[0].doctorname);
@@ -148,9 +148,9 @@ function findReferrer(referral: Referral){
 function findPatient(referral: Referral){
   const patient = patients.find(r=>
     (r.name === referral.patient.name) ||
-    (r.medicarenumber === referral.patient.medicareNumber) ||
-    (r.dateofbirth === referral.patient.dateOfBirth)
-    );
+    (r.medicarenumber === referral.patient.medicareNumber) || //this will undefined if above variable in interface changed to medicareNumber
+    (r.dateofbirth === referral.patient.dateOfBirth) //this will undefined if above variable in interface changed to dateOfBirth
+    ); 
     console.log('name', patients[0].name);
     console.log('medicareNumber', patients[0].medicarenumber);
     console.log('DOB', patients[0].dateofbirth);
